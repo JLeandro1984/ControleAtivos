@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>B3 Ativos Monitor Pro</title>
+  <meta name="description" content="Monitor profissional de ativos da B3 com favoritos, alertas e grafico historico." />
+
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#18c29c" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="B3 Monitor" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="bg-layer"></div>
+  <div class="app-shell">
+    <header class="topbar card">
+      <div class="brand">
+        <p class="eyebrow">B3 Monitor</p>
+        <h1>Ativos Monitor Pro</h1>
+      </div>
+
+      <form id="ticker-form" class="ticker-form" autocomplete="off">
+        <label for="ticker-input" class="sr-only">Adicionar ticker</label>
+        <input id="ticker-input" name="ticker" type="text" maxlength="12" placeholder="Adicionar ticker (ex: PETR4)" />
+        <button type="submit" class="btn btn-primary">Adicionar</button>
+        <div id="ticker-suggestions" class="ticker-suggestions hidden" role="listbox" aria-label="Sugestoes de ativos"></div>
+      </form>
+
+      <div class="header-actions">
+        <button id="theme-toggle" class="btn btn-ghost" type="button" aria-label="Alternar tema">Tema</button>
+        <button id="compact-toggle" class="btn btn-ghost" type="button" aria-label="Alternar modo compacto">Compacto</button>
+        <button id="export-btn" class="btn btn-ghost" type="button">Exportar</button>
+        <button id="import-btn" class="btn btn-ghost" type="button">Importar</button>
+        <input id="import-file" type="file" accept="application/json" class="sr-only" />
+        <button id="manual-refresh" class="btn btn-primary" type="button">Atualizar agora</button>
+      </div>
+      <button id="mobile-menu-toggle" class="btn btn-ghost mobile-only" type="button" aria-label="Menu" aria-expanded="false">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+    </header>
+
+    <section class="summary-grid">
+      <article id="data-status-banner" class="status-banner card" aria-live="polite">
+        <strong>Status dos dados</strong>
+        <p>Aguardando primeira atualizacao...</p>
+      </article>
+
+      <article class="summary-card card">
+        <p>Favoritos monitorados</p>
+        <strong id="summary-favorites">0</strong>
+      </article>
+      <article class="summary-card card">
+        <p>Alertas ativos</p>
+        <strong id="summary-alerts">0</strong>
+      </article>
+      <article class="summary-card card">
+        <p>Ultima atualizacao</p>
+        <strong id="summary-last-update">--:--:--</strong>
+      </article>
+      <article class="summary-card card">
+        <p>Mercado em destaque</p>
+        <strong id="summary-market-highlight">Sem dados</strong>
+      </article>
+    </section>
+
+    <main class="layout-grid" id="layout-grid" data-mobile-view="quotes">
+      <aside class="sidebar">
+        <section class="panel card">
+          <div class="panel-header">
+            <h2>Favoritos</h2>
+            <div class="panel-row-actions">
+              <select id="watchlist-select" aria-label="Selecionar watchlist"></select>
+              <button id="watchlist-add" class="btn btn-ghost" type="button">Nova</button>
+              <button id="watchlist-remove" class="btn btn-ghost" type="button">Excluir</button>
+              <select id="favorites-order-mode" aria-label="Ordenacao dos favoritos">
+                <option value="manual">Manual</option>
+                <option value="alphabetical">A-Z</option>
+              </select>
+            </div>
+          </div>
+          <ul id="favorites-list" class="favorites-list"></ul>
+          <div id="favorites-empty" class="empty-state small">
+            <p>Nenhum favorito ainda. Adicione um ticker para iniciar.</p>
+          </div>
+        </section>
+
+        <section class="panel card">
+          <div class="panel-header">
+            <h2>Alertas de preco</h2>
+            <button id="notifications-btn" class="btn btn-ghost" type="button">Notificacoes</button>
+          </div>
+          <form id="alert-form" class="alert-form">
+            <label>
+              Ativo
+              <select id="alert-ticker" required></select>
+            </label>
+            <label>
+              Condicao
+              <select id="alert-type" required>
+                <option value="gte">Preco maior ou igual</option>
+                <option value="lte">Preco menor ou igual</option>
+              </select>
+            </label>
+            <label>
+              Valor alvo
+              <input id="alert-price" type="number" min="0" step="0.01" required />
+            </label>
+            <label class="checkbox-line">
+              <input id="alert-sound" type="checkbox" checked />
+              Tocar som ao disparar
+            </label>
+            <button type="submit" class="btn btn-primary">Criar alerta</button>
+          </form>
+
+          <ul id="alerts-list" class="alerts-list"></ul>
+          <div id="alerts-empty" class="empty-state small">
+            <p>Nenhum alerta cadastrado.</p>
+          </div>
+        </section>
+
+        <section class="panel card">
+          <div class="panel-header">
+            <h2>Historico de alertas</h2>
+          </div>
+          <ul id="alerts-history" class="history-list"></ul>
+          <div id="history-empty" class="empty-state small">
+            <p>Aguardando disparo de alertas.</p>
+          </div>
+        </section>
+      </aside>
+
+      <section class="content-area">
+        <section class="card controls-row">
+          <div class="control-group">
+            <label for="refresh-interval">Atualizacao</label>
+            <select id="refresh-interval">
+              <option value="30">30s</option>
+              <option value="60" selected>60s</option>
+              <option value="120">120s</option>
+            </select>
+          </div>
+
+          <div class="control-group">
+            <label for="sort-by">Ordenar por</label>
+            <select id="sort-by">
+              <option value="ticker">Ticker</option>
+              <option value="price">Preco</option>
+              <option value="changePercent">Variacao %</option>
+            </select>
+          </div>
+
+          <div class="control-group inline-toggle">
+            <label for="sort-direction">Direcao</label>
+            <button id="sort-direction" class="btn btn-ghost" type="button" data-direction="asc">Asc</button>
+          </div>
+
+          <div class="control-group inline-toggle">
+            <label for="filter-alerted">Filtro</label>
+            <label class="switch">
+              <input id="filter-alerted" type="checkbox" />
+              <span>Somente com alerta armado</span>
+            </label>
+          </div>
+
+          <div class="control-group token-config-group">
+            <label for="api-token-input">Token brapi</label>
+            <div class="token-row">
+              <input id="api-token-input" type="password" placeholder="Cole seu token da brapi" autocomplete="off" />
+              <button id="token-visibility-btn" class="btn btn-ghost" type="button">Mostrar</button>
+              <button id="token-save-btn" class="btn btn-primary" type="button">Salvar</button>
+              <button id="token-clear-btn" class="btn btn-ghost" type="button">Limpar</button>
+            </div>
+            <small id="token-status-text">Token local nao configurado.</small>
+            <a class="token-help-link" href="https://brapi.dev" target="_blank" rel="noopener noreferrer">Obter token na brapi.dev</a>
+          </div>
+        </section>
+
+        <section class="card table-wrapper" aria-live="polite">
+          <div id="loading-overlay" class="loading-overlay hidden">
+            <div class="loader"></div>
+            <p>Atualizando cotacoes...</p>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Ticker</th>
+                <th>Ativo</th>
+                <th>Preco</th>
+                <th>Variacao</th>
+                <th>Variacao %</th>
+                <th>Max dia</th>
+                <th>Min dia</th>
+                <th>Volume</th>
+                <th>Alertas</th>
+                <th>Acoes</th>
+              </tr>
+            </thead>
+            <tbody id="quotes-body"></tbody>
+          </table>
+
+          <div id="quotes-empty" class="empty-state">
+            <h3>Sem ativos para exibir</h3>
+            <p>Adicione tickers na busca para montar seu monitoramento em tempo real.</p>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <div id="chart-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="chart-title">
+    <div class="modal-content card">
+      <button id="chart-close" class="btn btn-ghost close-btn" type="button" aria-label="Fechar">Fechar</button>
+      <header class="modal-header">
+        <h2 id="chart-title">Grafico do ativo</h2>
+        <p id="chart-subtitle">Resumo</p>
+      </header>
+
+      <div class="period-buttons" id="period-buttons">
+        <button data-period="1d" class="btn btn-ghost">Intraday</button>
+        <button data-period="5d" class="btn btn-ghost">5D</button>
+        <button data-period="1mo" class="btn btn-ghost active">1M</button>
+        <button data-period="6mo" class="btn btn-ghost">6M</button>
+        <button data-period="1y" class="btn btn-ghost">1Y</button>
+      </div>
+
+      <div class="chart-grid">
+        <div class="chart-wrap">
+          <canvas id="price-chart"></canvas>
+        </div>
+        <aside id="chart-summary" class="chart-summary"></aside>
+      </div>
+    </div>
+  </div>
+
+  <nav id="mobile-tab-bar" class="mobile-tab-bar" aria-label="Navegacao">
+    <button id="tab-quotes" class="mobile-tab active" type="button" data-tab="quotes">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      <span>Cotações</span>
+    </button>
+    <button id="tab-panel" class="mobile-tab" type="button" data-tab="panel">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>Painel</span>
+    </button>
+  </nav>
+
+  <div id="toast-container" class="toast-container" aria-live="assertive"></div>
+
+  <!-- Banner de atualização PWA -->
+  <div id="pwa-update-banner" class="pwa-update-banner hidden" role="status">
+    <span>Nova versao disponivel!</span>
+    <button id="pwa-update-btn" class="btn btn-primary" type="button">Atualizar agora</button>
+    <button id="pwa-update-dismiss" class="btn btn-ghost" type="button">Depois</button>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script type="module" src="app.js"></script>
+
+  <!-- Registro do Service Worker (PWA) -->
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/sw.js").then((reg) => {
+          reg.addEventListener("updatefound", () => {
+            const newWorker = reg.installing;
+            newWorker.addEventListener("statechange", () => {
+              if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+                // Há uma versão nova instalada aguardando — mostra o banner.
+                document.getElementById("pwa-update-banner").classList.remove("hidden");
+              }
+            });
+          });
+
+          document.getElementById("pwa-update-btn").addEventListener("click", () => {
+            if (reg.waiting) {
+              reg.waiting.postMessage("SKIP_WAITING");
+            }
+            document.getElementById("pwa-update-banner").classList.add("hidden");
+          });
+
+          document.getElementById("pwa-update-dismiss").addEventListener("click", () => {
+            document.getElementById("pwa-update-banner").classList.add("hidden");
+          });
+        });
+
+        // Quando o SW assume controle (após SKIP_WAITING), recarrega a página.
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener("controllerchange", () => {
+          if (!refreshing) {
+            refreshing = true;
+            window.location.reload();
+          }
+        });
+      });
+    }
+  </script>
+</body>
+</html>
