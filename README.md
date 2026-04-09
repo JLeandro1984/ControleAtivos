@@ -1,168 +1,129 @@
 # B3 Ativos Monitor Pro
 
-Aplicação web profissional para monitoramento de ativos da B3 com foco em usabilidade, performance e organização visual.
+Aplicação web para monitoramento de ativos da B3 com foco em velocidade, clareza visual e uso diário.
 
-Construída com HTML, CSS e JavaScript puro, sem frameworks, com arquitetura modular, atualização periódica de mercado, favoritos, alertas, múltiplas watchlists e gráfico histórico.
+Projeto feito com HTML, CSS e JavaScript puro (ES Modules), sem frameworks.
 
-## Principais Funcionalidades
+## Funcionalidades
 
-- Monitoramento de cotações por ticker (brapi)
-- Tabela premium com:
-  - ticker
-  - nome do ativo
-  - preço atual
-  - variação absoluta
-  - variação percentual
-  - máxima do dia
-  - mínima do dia
-  - volume
-- Destaque visual de alta e baixa
-- Destaque de maior alta e maior baixa
-- Filtro para mostrar apenas ativos com alerta armado
-- Ordenação por ticker, preço e variação percentual
-- Atualização automática (30, 60, 120 segundos)
-- Botão de atualização manual
-- Controle contra múltiplas requisições simultâneas
-- Favoritos persistidos em localStorage
-- Reordenação manual e modo alfabético
-- Alertas de preço (>= e <=)
-- Histórico de alertas disparados
-- Notificação visual (toast), som opcional e Notification API
-- Gráfico com Chart.js por ativo, com períodos:
-  - intraday
-  - 5 dias
-  - 1 mês
-  - 6 meses
-  - 1 ano
-- Modo claro/escuro
-- Modo compacto (alta densidade)
+- Monitoramento de cotações em tempo real via brapi
+- Tabela com ticker, ativo, preço, variação, variação %, máxima, mínima e volume
+- Destaque visual para alta, baixa, maior alta e maior baixa
+- Filtro de ativos com alerta armado
+- Ordenação por ticker, preço e variação %
+- Atualização automática (30s, 60s, 120s) e atualização manual
+- Favoritos persistentes com modo manual e alfabético
+- Alertas de preço (`>=` e `<=`) com histórico de disparos
+- Notificações com toast, som opcional e Notification API
+- Gráfico por ativo com períodos intraday, 5D, 1M, 6M e 1Y
+- Modo claro/escuro e modo compacto
 - Múltiplas watchlists
 - Exportação e importação de backup em JSON
+- Campo de token brapi na interface (salvar, limpar, mostrar/ocultar)
+- Autocomplete de ativos com logo, preço, variação e navegação por teclado
+- Validação para impedir inclusão de ticker inexistente
+- Interface responsiva com experiência mobile otimizada
+- PWA instalável (ícone, manifesto e Service Worker)
 
-## Stack e Arquitetura
+## Mobile
 
-- HTML5 sem frameworks
-- CSS3 responsivo com tema e microinterações
+- Layout otimizado para celular
+- Tabela convertida para cards legíveis no mobile
+- Barra inferior com abas para alternar entre Cotações e Painel
+- Menu de ações recolhido no topo para reduzir poluição visual
+
+## PWA
+
+O projeto já está preparado para instalação como aplicativo:
+
+- `manifest.json`
+- `sw.js`
+- ícones em `icons/`
+- favicon para aba do navegador
+
+### Atualizar o app sem desinstalar
+
+Para forçar atualização da versão instalada no celular/desktop:
+
+1. Abra `sw.js`
+2. Altere `CACHE_VERSION` (exemplo: `v1` para `v2`)
+3. Faça deploy/publicação dos arquivos
+
+Quando houver versão nova, o app mostra um banner de atualização com botão para recarregar na versão mais recente.
+
+## Stack
+
+- HTML5
+- CSS3 responsivo
 - JavaScript ES Modules
-- Fetch API para integração com mercado
-- localStorage para persistência local
-- Chart.js via CDN para visualização de séries
+- Fetch API
+- localStorage
+- Chart.js (CDN)
 
-Estrutura de arquivos:
+## Estrutura de Arquivos
 
-- index.html
-- styles.css
-- app.js
-- js/config.js
-- js/api.js
-- js/storage.js
-- js/alerts.js
-- js/ui.js
-- js/charts.js
-
-Responsabilidades:
-
-- app.js: orquestração da aplicação, estado global e eventos
-- js/api.js: integração com brapi (cotações e histórico)
-- js/storage.js: persistência e migração de dados legados
-- js/alerts.js: regras de alerta e disparo
-- js/ui.js: renderização de interface e utilitários de UI
-- js/charts.js: criação e atualização do gráfico
-- js/config.js: configurações e chaves de storage
-
-## Integração com brapi
-
-A aplicação usa como base:
-
-- GET https://brapi.dev/api/quote/PETR4
-- GET https://brapi.dev/api/quote/PETR4,VALE3,ITUB4
-
-### Configurar token (opcional, recomendado para evolução)
-
-1. Abra o arquivo js/config.js
-2. Edite a propriedade apiToken em APP_CONFIG
-3. Defina seu token:
-
-```js
-export const APP_CONFIG = {
-  apiBaseUrl: "https://brapi.dev/api",
-  apiToken: "SEU_TOKEN_AQUI",
-  requestTimeoutMs: 12000,
-  defaultRefreshInterval: 60,
-  refreshIntervals: [30, 60, 120],
-  maxHistoryItems: 40,
-  maxTriggeredHistoryItems: 80
-};
-```
-
-Se apiToken estiver vazio, a aplicação tenta funcionar no modo básico gratuito quando possível.
+- `index.html`
+- `styles.css`
+- `app.js`
+- `manifest.json`
+- `sw.js`
+- `start-local.bat`
+- `icons/`
+- `js/config.js`
+- `js/api.js`
+- `js/storage.js`
+- `js/alerts.js`
+- `js/ui.js`
+- `js/charts.js`
 
 ## Como Executar Localmente
 
-Como o projeto usa módulos ES, rode com servidor HTTP local.
+Como o projeto usa módulos ES e Service Worker, execute com servidor HTTP.
 
-### Opção 1: VS Code + Live Server
+### Opção 1: script pronto
 
-1. Abra a pasta do projeto no VS Code
-2. Clique com o botão direito em index.html
-3. Escolha Open with Live Server
+Execute:
 
-### Opção 2: Python
+```bat
+start-local.bat
+```
+
+Depois abra `http://localhost:5500`.
+
+### Opção 2: Python manual
 
 ```bash
 python -m http.server 5500
 ```
 
-Depois abra no navegador:
+Depois abra `http://localhost:5500`.
 
-http://localhost:5500
+## Token brapi
 
-## Como Usar
+O token pode ser configurado direto na interface, na seção de controles:
 
-1. Digite um ticker no campo de busca e clique em Adicionar
-2. Ajuste ordenação, filtro e intervalo de atualização
-3. Crie alertas por ativo com condição >= ou <=
-4. Clique em Gráfico na linha do ativo para abrir o modal
-5. Crie watchlists separadas para estratégias diferentes
-6. Use Exportar para salvar backup em JSON
-7. Use Importar para restaurar backup
+1. Cole o token no campo `Token brapi`
+2. Clique em `Salvar`
+3. O token fica salvo localmente no navegador
 
-## Persistência de Dados
+Sem token válido, alguns ativos podem ficar sem cotação por limitação da API.
 
-Os dados ficam salvos no localStorage do navegador:
+## Persistência
 
-- configurações da interface
+Os dados são persistidos no localStorage:
+
+- configurações de interface
 - watchlists
 - favoritos
 - alertas
 - histórico de alertas
+- token configurado localmente
 
-Há migração automática de estrutura legada para estrutura de workspace (watchlists).
+## Observações
 
-## Comportamento de Histórico
-
-O histórico de preços pode variar conforme disponibilidade do endpoint e plano da API.
-
-Quando não houver série histórica retornada pelo endpoint esperado, a aplicação usa fallback mock para não quebrar a UX do gráfico.
-
-## Qualidade e Expansão
-
-Base preparada para evolução com backend futuro:
-
-- separação de responsabilidades por módulo
-- organização de estado para múltiplas watchlists
-- camada de API isolada para troca de provedor
-- regras de negócio desacopladas da renderização
-
-## Próximos Passos Recomendados para Produção
-
-- adicionar autenticação e sincronização de dados em backend
-- configurar cache inteligente e retries exponenciais
-- adicionar testes automatizados (unit e integração)
-- implementar CI/CD e versionamento semântico
-- registrar logs de erro e telemetria (ex: Sentry)
-- adicionar controle de permissões e perfis de usuário
+- As respostas da API podem variar conforme plano/limites da brapi
+- O histórico de preços pode ter fallback quando o endpoint não retorna série esperada
 
 ## Licença
 
-Defina a licença conforme sua estratégia de distribuição (MIT, proprietária, etc.).
+Defina a licença conforme sua estratégia (MIT, proprietária, etc.).
