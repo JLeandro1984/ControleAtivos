@@ -931,6 +931,30 @@ function bindEvents() {
     void loadChartData();
   });
 
+  // ----- Mobile tab navigation -----
+  const layoutGrid = document.getElementById("layout-grid");
+  const tabQuotes = document.getElementById("tab-quotes");
+  const tabPanel = document.getElementById("tab-panel");
+
+  function setMobileTab(tab) {
+    if (!layoutGrid) return;
+    layoutGrid.dataset.mobileView = tab;
+    tabQuotes?.classList.toggle("active", tab === "quotes");
+    tabPanel?.classList.toggle("active", tab === "panel");
+  }
+
+  tabQuotes?.addEventListener("click", () => setMobileTab("quotes"));
+  tabPanel?.addEventListener("click", () => setMobileTab("panel"));
+
+  // ----- Mobile hamburger menu -----
+  const mobileMenuToggle = document.getElementById("mobile-menu-toggle");
+  const topbar = document.querySelector(".topbar");
+
+  mobileMenuToggle?.addEventListener("click", () => {
+    const isOpen = topbar.classList.toggle("menu-open");
+    mobileMenuToggle.setAttribute("aria-expanded", String(isOpen));
+  });
+
 }
 
 function syncControls() {
